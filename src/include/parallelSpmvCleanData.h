@@ -1,21 +1,25 @@
-    MPI_Win_free(&smWin_recvCount);
-    MPI_Win_free(&smWin_sendCount);
+    if (worldSize>1) {
+        MPI_Win_free(&smWin_recvCount);
+        MPI_Win_free(&smWin_sendCount);
+
+        for (int node=0; node<numberOfNodes; ++node) {
+            MPI_Win_sync(  smWin_compressedVec[node]  );
+        } // end for //
+        MPI_Barrier(sm_comm);
+        
+        for (int node=0; node<numberOfNodes; ++node) {
+            MPI_Win_unlock_all( smWin_compressedVec[node] );
+        } // end for //
+        
+        
+        for (int node=0; node<numberOfNodes; ++node) {
+            MPI_Win_free(  smWin_compressedVec+node  );
+            MPI_Win_free(  smWin_sendColumns+node  );
+        } // end for //
+    } // end if //
+
     
     
-    for (int node=0; node<numberOfNodes; ++node) {
-        MPI_Win_sync(  smWin_compressedVec[node]  );
-    } // end for //
-    MPI_Barrier(sm_comm);
-    
-    for (int node=0; node<numberOfNodes; ++node) {
-        MPI_Win_unlock_all( smWin_compressedVec[node] );
-    } // end for //
-    
-    
-    for (int node=0; node<numberOfNodes; ++node) {
-        MPI_Win_free(  smWin_compressedVec+node  );
-        MPI_Win_free(  smWin_sendColumns+node  );
-    } // end for //
 
     free(requestS);
     free(requestR);

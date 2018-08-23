@@ -100,10 +100,11 @@ int main(int argc, char *argv[])
 
     // nColsOff is the number of off-node columns per node
     int nColsOff=0;
-    createCommunicator(&nColsOff, &recvCount,&smWin_recvCount, &sendCount,&smWin_sendCount, &sendColumns,&smWin_sendColumns, col_idx_off, &off_node_nnz, &rowsPerNode,&compressedVec, &smWin_compressedVec, &numberOfNodes);
+    if (worldSize>1) {
+        createCommunicator(&nColsOff, &recvCount,&smWin_recvCount, &sendCount,&smWin_sendCount, &sendColumns,&smWin_sendColumns, col_idx_off, &off_node_nnz, &rowsPerNode,&compressedVec, &smWin_compressedVec, &numberOfNodes);
+    } // end if //
+        
     // ready to start //    
-
-
 
 ///////////////////////////////////////////////////
 ////  shared memory
@@ -137,7 +138,7 @@ int main(int argc, char *argv[])
 
 
     int countR=0, countS=0;
-    if (sharedRank==0)   {
+    if (sharedRank==0 && worldSize>1)   {
         for (int node=0; node<numberOfNodes; ++node) {
             if (recvCount[node] > 0 ) ++countR;
             if (sendCount[node] > 0 ) ++countS;
@@ -155,15 +156,18 @@ int main(int argc, char *argv[])
     for (int t=0; t<REP; ++t) {
         // cleaning solution vector //
         for(int i=0; i<rowsPerProc; ++i) w[i] = 0.0;
+
         
-        startComunication(v_nodal,v_off_nodal,compressedVec,recvCount, sendCount, sendColumns, requestS,requestR,&numberOfNodes, &nodeComm, &sharedRank);
+            if (worldSize>1) {
+                startComunication(v_nodal,v_off_nodal,compressedVec,recvCount, sendCount, sendColumns, requestS,requestR,&numberOfNodes, &nodeComm, &sharedRank);
+            }  // end if // 
 
         // solving the on_proc part while comunication is taken place.
         spmv(w,val,v_nodal, row_ptr,col_idx,rowsPerProc);
 
         
         // waitting for the comunication to finish
-        if (sharedRank == 0) {
+        if (sharedRank == 0 && worldSize>1 ) {
             MPI_Waitall(countR, requestR,MPI_STATUS_IGNORE);
             MPI_Waitall(countS, requestS,MPI_STATUS_IGNORE);
         } // end if //
