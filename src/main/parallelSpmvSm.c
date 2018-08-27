@@ -173,10 +173,10 @@ int main(int argc, char *argv[])
         } // end if //
         
 
+        MPI_Win_sync(smWin_v_off_nodal);
+        MPI_Barrier(sm_comm);
         // now is time to solve the off_proc part
         if (off_node_nnz > 0) {
-            MPI_Win_sync(smWin_v_off_nodal);
-            MPI_Barrier(sm_comm);
             spmv(w,val_off,v_off_nodal, row_ptr_off,col_idx_off,rowsPerProc);
         } // end if//
 
