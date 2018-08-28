@@ -9,7 +9,7 @@ numberOfProcesses=ARG3+1
 set terminal pdf noenhanced
 set output computer."_".matrixName.".pdf"
 
-files = " parallelSpmv  parallelSpmvSmV1  parallelSpmvSmV2"
+files = "parallelSpmv parallelSpmvSmV1 parallelSpmvSmV2"
 
 load 'style.gnp'
 #set style line 1 dt 1 ps 0.6 lc rgb "#F0F0F0";
