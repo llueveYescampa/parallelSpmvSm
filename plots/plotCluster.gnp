@@ -9,6 +9,7 @@ numberOfProcesses=ARG3+1
 set terminal pdf noenhanced
 set output computer."_".matrixName.".pdf"
 
+files = " parallelSpmv  parallelSpmvSmV1  parallelSpmvSmV2"
 
 load 'style.gnp'
 #set style line 1 dt 1 ps 0.6 lc rgb "#F0F0F0";
@@ -36,11 +37,12 @@ set boxwidth 0.90
 set xtics format ""
 set grid ytics
 
+
 #plot  computer.'/temp.txt' using 2:xtic(1) title "1 Process" ls 1,\
 #      ''                   using 3         title "2 Process" ls 2,\
 #      ''                   using 4         title "3 Process" ls 3,\
 #      ''                   using 5         title "4 Process" ls 1
 
 
-plot for[i=2:numberOfProcesses] computer.'/temp.txt' using i:xtic(1)  title " Process".(i-1)  ls (i-1)
+plot for[i=2:numberOfProcesses] computer.'/temp.txt' using i:xtic(1)  title word(files, i-1)  ls (i-1)
 
