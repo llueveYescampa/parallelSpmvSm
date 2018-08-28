@@ -1,15 +1,12 @@
 #!/bin/bash
 if [ "$#" -ne 3 ]
 then
-  echo "Usage: $0 program matrixSize compiler"
+  echo "Usage: $0 parallelSpmv matrixName compiler"
   exit 1
 fi
 
-ppn="$(($2 / 4))"
-
-
-tempFilename='anyTempFileNameWillWork.txt'
-outputFilename=$1.txt
+tempFilename=$(hostname)'_anyTempFileNameWillWork.txt'
+outputFilename=$1_cluster.txt
 
 nloops=5
 
@@ -20,13 +17,12 @@ if [ "$MPI" == "HYDRA" ]; then
     echo "MPICH"
     bindings="--bind-to socket"
     export HYDRA_TOPO_DEBUG=1
-    export MPIR_CVAR_CH3_PORT_RANGE=10000:10100
 elif [ "$MPI" == "Intel(R)" ]; then
     echo "Intel MPI"
-    bindings="-genv I_MPI_PIN_DOMAIN=core -genv I_MPI_PIN_ORDER=spread -genv I_MPI_DEBUG=4 -genv I_MPI_FABRICS=shm:tcp"
+    bindings="-genv I_MPI_PIN_DOMAIN=socket  -genv I_MPI_PIN_ORDER=scatter  -genv I_MPI_DEBUG=4 -genv I_MPI_FABRICS=shm:tcp"    
 elif [ "$MPI" == "mpiexec" ]; then
     echo "open-mpi"
-    bindings="--bind-to core --report-bindings --mca btl_tcp_if_exclude docker0,127.0.0.1/8"
+    bindings="--bind-to socket --map-by socket  --report-bindings "
 fi
 # end of Determining MPI implementation and binding options #
 
@@ -42,9 +38,6 @@ if [ -n "$PGI" ]; then
     echo "Pgi Compiler"
 elif [ -n "$INTEL_LICENSE_FILE" ]; then
     echo "Intel Compiler"
-    #np=15
-    #npps="$(($np / $numaNodes))"
-    #npm1="$(($np - 1))"
 else
     echo "Gnu Compiler"
 fi
@@ -53,16 +46,22 @@ rm -f $tempFilename
 
 for j in  `seq 1 $nloops`; do
     echo run number: $j
-    if [ "$MPI" == "Intel(R)" ]; then
-        mpiexec $bindings -hosts stout,koelsch,dunkel,porter  -n $2  -ppn $ppn $1 | grep taken >>  $tempFilename
+    echo  $1  ../matrices/$2".mm_bin" ../matrices/$2".in_bin" 
+    if [ "$MPI" == "HYDRA" ]; then
+        mpiexec $bindings  -hosts blackPanther,blackEngineering -n 4 -ppn 2 $1  ../matrices/$2".mm_bin" ../matrices/$2".in_bin"   ../matrices/$2".out_bin"  | grep taken >>  $tempFilename
+    elif [ "$MPI" == "Intel(R)" ]; then
+        mpiexec $bindings  -hosts blackPanther,blackEngineering -n 4 -ppn 2 $1  ../matrices/$2".mm_bin" ../matrices/$2".in_bin"   ../matrices/$2".out_bin"  | grep taken >>  $tempFilename    
     elif [ "$MPI" == "mpiexec" ]; then
-        mpiexec $bindings -host stout:$ppn,koelsch:$ppn,dunkel:$ppn,porter:$ppn -n $2 $1 | grep taken >>  $tempFilename
+        mpiexec $bindings  -host blackPanther:2,blackEngineering:2 -n 4  $1 ../matrices/$2".mm_bin" ../matrices/$2".in_bin"   ../matrices/$2".out_bin"  | grep taken >>  $tempFilename        
     fi
+    
 done
 
-mkdir -p ../plots/cluster/$3/$2
 
-cat $tempFilename | awk 'BEGIN{} {print $5} END{}' | sort -n  | head -1 > ../plots/cluster/$3/$2/$outputFilename
+mkdir -p ../plots/$(hostname)/$2/$3
+
+#cat $tempFilename | awk 'BEGIN{}   { printf("%d %f\n", $5,$7)}  END{}' |  sort  -k1,1n -k2,2n |  awk 'BEGIN{ prev=-1} { if ($1 != prev) { print $0; prev=$1}  } END{}' > ../plots/$(hostname)/$2/$3/$outputFilename
+cat $tempFilename | awk 'BEGIN{}   { printf("%d %f\n", $5,$7)}  END{}' |  sort  -k1,1n -k2,2n |   awk 'BEGIN{ prev=-1} { if ($1 != prev) { printf("%f  ",$2); prev=$1}  } END{printf("\n")}'  > ../plots/$(hostname)/$2/$3/$outputFilename
 
 rm $tempFilename
 
