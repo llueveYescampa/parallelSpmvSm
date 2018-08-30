@@ -16,6 +16,10 @@
             MPI_Win_free(  smWin_compressedVec+node  );
             MPI_Win_free(  smWin_sendColumns+node  );
         } // end for //
+        free(smWin_compressedVec);
+        free(smWin_sendColumns);        
+        free(sendColumns);
+        free(compressedVec);
     } // end if //
 
     

@@ -106,6 +106,7 @@ int createColIdxMap(int **b, MPI_Win *sm_win, int *a, const int *n)
     MPI_Win_sync(*sm_win);
     MPI_Barrier(sm_comm);
     MPI_Win_unlock_all(*sm_win);
+    if (sharedRank == 0)  free(temp);
 
     // compacting the sequence of input vector
     for (int j=0; j<*n; ++j) {
