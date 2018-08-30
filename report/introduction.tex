@@ -7,6 +7,8 @@
 \subsection*{Preliminary Set}
 This short report shows the preliminary set of matrices to use beside the performance results of the second shared memory version. In this version, the communication is theoretically between nodes. Since here we are only using one node, the performance shown must be very similar to the report produced for the first shared memory version.
 
+UPDATE: This results were produced after allowing vectorization in the spmv function. The results are puzzling because, while for one process the intel compiler gets a boost, the Gnu compiler gets a slowdown. The pgi compiler gets a large boost for some matrices and slowdown for others.
+
 \medskip
 
 \begin{comment}
