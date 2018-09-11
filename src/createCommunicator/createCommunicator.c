@@ -13,7 +13,7 @@ void createCommunicator(int *nColsOff,
                         int **sendCount,    MPI_Win *smWin_sendCount,
                         int ***sendColumns, MPI_Win **smWin_sendColumns,
                         int *col_idx_off,
-                        const int *off_node_nnz,
+                        const int *off_proc_nnz,
                         const int *rowsPerNode,
                         real ***compressedVec, MPI_Win **smWin_compressedVec,
                         const int *nnodes
@@ -21,7 +21,6 @@ void createCommunicator(int *nColsOff,
 {
     int  worldRank;
     MPI_Comm_rank(MPI_COMM_WORLD,&worldRank);
-    //MPI_Comm_size(MPI_COMM_WORLD,&worldSize);
 
     // creating an intranode communicator 
     MPI_Comm sm_comm;
@@ -34,23 +33,22 @@ void createCommunicator(int *nColsOff,
     // creating a communicator for the lead processes in each node
     MPI_Comm nodeComm;
     MPI_Comm_split(MPI_COMM_WORLD, sharedRank, (worldRank/sharedSize), &nodeComm );
-    int nodeNumber; //,numberOfNodes;
+    int nodeNumber; 
     MPI_Comm_rank(nodeComm,&nodeNumber);
-    //MPI_Comm_size(nodeComm,&numberOfNodes);
     // creating a communicator for the lead processes in each node
 
 
     int *off_node_column_map=NULL;
     MPI_Win smWin_off_node_column_map;
 
-    int total_off_node_nnz=0;
-    MPI_Allreduce( off_node_nnz, &total_off_node_nnz,1,MPI_INT,MPI_SUM,sm_comm);
+    int off_node_nnz=0;
+    MPI_Allreduce( off_proc_nnz, &off_node_nnz,1,MPI_INT,MPI_SUM,sm_comm);
 
     // creating the off_node_column_map as a shared array.
-    if (total_off_node_nnz)  {
+    if (off_node_nnz)  {
         // nColsOff is the number of off-node columns per node
         // only to be created if the node has off-node non-zeros
-        *nColsOff=  createColIdxMap(&off_node_column_map,&smWin_off_node_column_map,col_idx_off,off_node_nnz ); 
+        *nColsOff=  createColIdxMap(&off_node_column_map,&smWin_off_node_column_map,col_idx_off,off_proc_nnz ); 
     } // end if //
     
     // creating the firstColumn array
@@ -191,7 +189,7 @@ void createCommunicator(int *nColsOff,
         MPI_Win_unlock_all((*smWin_sendColumns)[node]);
     } // end for //
     
-    if (total_off_node_nnz)  {
+    if (off_node_nnz)  {
         MPI_Win_free(&smWin_off_node_column_map);
     } // end if //
 
@@ -254,8 +252,8 @@ void createCommunicator(int *nColsOff,
 
 
 /*
-    printf("Rank: %d,  off_node_nnz %d   --> ", worldRank, *off_node_nnz ) ;
-    for (int i=0; i< *off_node_nnz; ++i){
+    printf("Rank: %d,  off_proc_nnz %d   --> ", worldRank, *off_proc_nnz ) ;
+    for (int i=0; i< *off_proc_nnz; ++i){
         printf("%4d", col_idx_off[i]);
     }
     printf("\n");

@@ -86,10 +86,10 @@ int main(int argc, char *argv[])
 
     int n_global,nnz_global;
     int rowsPerProc,rowsPerNode;
-    int off_node_nnz=0;
+    int off_proc_nnz=0;
     
     reader(&n_global,&nnz_global, &rowsPerProc, 
-           &off_node_nnz,
+           &off_proc_nnz,
            &row_ptr,&col_idx,&val,
            &row_ptr_off,&col_idx_off,&val_off,
            argv[1], root);
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
     // nColsOff is the number of off-node columns per node
     int nColsOff=0;
     if (worldSize>1) {
-        createCommunicator(&nColsOff, &recvCount,&smWin_recvCount, &sendCount,&smWin_sendCount, &sendColumns,&smWin_sendColumns, col_idx_off, &off_node_nnz, &rowsPerNode,&compressedVec, &smWin_compressedVec, &numberOfNodes);
+        createCommunicator(&nColsOff, &recvCount,&smWin_recvCount, &sendCount,&smWin_sendCount, &sendColumns,&smWin_sendColumns, col_idx_off, &off_proc_nnz, &rowsPerNode,&compressedVec, &smWin_compressedVec, &numberOfNodes);
     } // end if //
         
     // ready to start //    
@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
         MPI_Win_sync(smWin_v_off_nodal);
         MPI_Barrier(sm_comm);
         // now is time to solve the off_proc part
-        if (off_node_nnz > 0) {
+        if (off_proc_nnz > 0) {
             spmv(w,val_off,v_off_nodal, row_ptr_off,col_idx_off,rowsPerProc);
         } // end if//
 
