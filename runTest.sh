@@ -19,7 +19,7 @@ if [ "$MPI" == "HYDRA" ]; then
     export HYDRA_TOPO_DEBUG=1
 elif [ "$MPI" == "Intel(R)" ]; then
     echo "Intel MPI"
-    bindings="-genv I_MPI_PIN_DOMAIN=socket  -genv I_MPI_PIN_ORDER=scatter -genv I_MPI_DEBUG=4 -genv I_MPI_FABRICS=shm:tcp"        
+    bindings="-genv I_MPI_PIN_DOMAIN=socket  -genv I_MPI_PIN_ORDER=scatter -genv I_MPI_DEBUG=4 -genv I_MPI_FABRICS=shm:ofi"
 elif [ "$MPI" == "mpiexec" ]; then
     echo "open-mpi"
     bindings="--bind-to socket --report-bindings"
