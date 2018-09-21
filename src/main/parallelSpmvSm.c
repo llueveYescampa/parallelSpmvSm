@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 
     // nColsOff is the number of off-node columns per node
     int nColsOff=0;
-    if (worldSize>1) {
+    if (numberOfNodes>1) {
         createCommunicator(&nColsOff, &recvCount,&smWin_recvCount, &sendCount,&smWin_sendCount, &sendColumns,&smWin_sendColumns, col_idx_off, &off_proc_nnz, &rowsPerNode,&compressedVec, &smWin_compressedVec, &numberOfNodes);
     } // end if //
         
@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 
 
     int countR=0, countS=0;
-    if (sharedRank==0 && worldSize>1)   {
+    if (sharedRank==0 && numberOfNodes>1)   {
         for (int node=0; node<numberOfNodes; ++node) {
             if (recvCount[node] > 0 ) ++countR;
             if (sendCount[node] > 0 ) ++countS;
@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
         for(int i=0; i<rowsPerProc; ++i) w[i] = 0.0;
 
         
-            if (worldSize>1) {
+            if (numberOfNodes>1) {
                 startComunication(v_nodal,v_off_nodal,compressedVec,recvCount, sendCount, sendColumns, requestS,requestR,&numberOfNodes, &nodeComm, &sharedRank);
             }  // end if // 
 
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 
         
         // waitting for the comunication to finish
-        if (sharedRank == 0 && worldSize>1 ) {
+        if (sharedRank == 0 && numberOfNodes>1 ) {
             MPI_Waitall(countR, requestR,MPI_STATUS_IGNORE);
             MPI_Waitall(countS, requestS,MPI_STATUS_IGNORE);
         } // end if //

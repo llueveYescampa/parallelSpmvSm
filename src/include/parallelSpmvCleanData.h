@@ -1,4 +1,4 @@
-    if (worldSize>1) {
+    if (numberOfNodes>1) {
         MPI_Win_free(&smWin_recvCount);
         MPI_Win_free(&smWin_sendCount);
 
