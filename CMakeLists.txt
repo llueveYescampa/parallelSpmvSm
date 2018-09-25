@@ -19,6 +19,7 @@ elseif ( CMAKE_C_COMPILER_ID STREQUAL "Intel" )
     #set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -qopt-report=3 -qopt-report-phase=vec ")
 elseif ( CMAKE_C_COMPILER_ID STREQUAL "PGI" )
     set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Minform=inform  -Mnodepchk -Minfo=all -Mvect=simd ")
+    #set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Minform=inform  -Mnodepchk -Minfo=all -Mvect=simd -tp=px ")
 endif ( )
 ## end of adding the following lines while cleaning the code
 
