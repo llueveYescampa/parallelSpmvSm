@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+//#include <string.h>
 #include <mpi.h>
 #include "real.h"
 
 #include "parallelSpmv.h"
 
-#define REP 1000
+#define REP 10
 
 
 int main(int argc, char *argv[]) 
@@ -25,15 +26,16 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(sm_comm,&sharedRank);
     MPI_Comm_size(sm_comm,&sharedSize);
     // creating an intranode communicator 
-
+/*
     // creating a communicator for the lead processes in each node
     MPI_Comm nodeComm;
     MPI_Comm_split(MPI_COMM_WORLD, sharedRank, (worldRank/sharedSize), &nodeComm );
-    int nodeNumber,numberOfNodes;
-    MPI_Comm_rank(nodeComm,&nodeNumber);
+    int numberOfNodes=CEILING(worldSize,sharedSize);
+    //MPI_Comm_rank(nodeComm,&nodeNumber);
     MPI_Comm_size(nodeComm,&numberOfNodes);
     // creating a communicator for the lead processes in each node
-
+*/    
+    int numberOfNodes=CEILING(worldSize,sharedSize);
     const int root=0;
 
     
@@ -100,9 +102,26 @@ int main(int argc, char *argv[])
 
     // nColsOff is the number of off-node columns per node
     int nColsOff=0;
+
+    int countR=0, countS=0;
     if (numberOfNodes>1) {
-        createCommunicator(&nColsOff, &recvCount,&smWin_recvCount, &sendCount,&smWin_sendCount, &sendColumns,&smWin_sendColumns, col_idx_off, &off_proc_nnz, &rowsPerNode,&compressedVec, &smWin_compressedVec, &numberOfNodes);
+        createCommunicator(&nColsOff, &recvCount,&smWin_recvCount, &sendCount,&smWin_sendCount, &sendColumns,&smWin_sendColumns, col_idx_off, &off_proc_nnz, &rowsPerNode,&compressedVec, &smWin_compressedVec, &numberOfNodes, &countR, &countS, &requestR, &requestS) ;
     } // end if //
+
+/*
+    /// I beleive all this belongs to the  "createCommunicator()" function.... Move it in when it works
+    int countR=0, countS=0;
+    if (sharedRank==0 && numberOfNodes>1)   {
+        for (int node=0; node<numberOfNodes; ++node) {
+            if (recvCount[node] > 0 ) ++countR;
+            if (sendCount[node] > 0 ) ++countS;
+        } // end for //
+        requestS = (MPI_Request *) malloc( countS*sizeof(MPI_Request));
+        requestR = (MPI_Request *) malloc( countR*sizeof(MPI_Request));
+    } // end if //
+    
+    /// I beleive all this belongs to the  "createCommunicator()" function.... Move it in when it works
+*/
         
     // ready to start //    
 
@@ -137,15 +156,6 @@ int main(int argc, char *argv[])
     w     = (real *) malloc(rowsPerProc*sizeof(real)); 
 
 
-    int countR=0, countS=0;
-    if (sharedRank==0 && numberOfNodes>1)   {
-        for (int node=0; node<numberOfNodes; ++node) {
-            if (recvCount[node] > 0 ) ++countR;
-            if (sendCount[node] > 0 ) ++countS;
-        } // end for //
-        requestS = (MPI_Request *) malloc( countS*sizeof(MPI_Request));
-        requestR = (MPI_Request *) malloc( countR*sizeof(MPI_Request));
-    } // end if //
     
 
     // Timing should begin here//
@@ -156,6 +166,7 @@ int main(int argc, char *argv[])
     for (int t=0; t<REP; ++t) {
         // cleaning solution vector //
         for(int i=0; i<rowsPerProc; ++i) w[i] = 0.0;
+        //memset(w, 0, rowsPerProc*sizeof(real));
 
         
         if (numberOfNodes>1) {

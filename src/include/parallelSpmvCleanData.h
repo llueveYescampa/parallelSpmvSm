@@ -21,8 +21,6 @@
         free(sendColumns);
         free(compressedVec);
     } // end if //
-
-    
     
 
     free(requestS);

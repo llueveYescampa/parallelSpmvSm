@@ -1,4 +1,5 @@
 #include "real.h"
+#define CEILING(i,j)       (((i)+(j)-1)/(j))
 
 void reader(int *gn, int *gnnz, int *n,  int *off_proc_nnz, 
             int **rPtr,int **cIdx,real **v,int **rPtrO,int **cIdxO,real **vO,
@@ -15,7 +16,11 @@ void createCommunicator( int *nColsOff,
                          const int *off_node_nnz,
                          const int *rowsPerNode,
                          real ***compressedVec, MPI_Win **smWin_compressedVec,
-                         const int *nnodes
+                         const int *nnodes,
+                         int *countR,
+                         int *countS,
+                         MPI_Request **reqR,
+                         MPI_Request **reqS
                          );                        
                          
 

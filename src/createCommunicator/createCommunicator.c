@@ -16,7 +16,11 @@ void createCommunicator(int *nColsOff,
                         const int *off_proc_nnz,
                         const int *rowsPerNode,
                         real ***compressedVec, MPI_Win **smWin_compressedVec,
-                        const int *nnodes
+                        const int *nnodes,
+                        int *countR,
+                        int *countS ,
+                        MPI_Request **requestR,
+                        MPI_Request **requestS
                         )
 {
     int  worldRank;
@@ -72,7 +76,7 @@ void createCommunicator(int *nColsOff,
 
 
     // request arrays for communication  - two per node (send/recv)
-    MPI_Request *requestS=NULL,*requestR=NULL;
+    MPI_Request *myReqS=NULL,*myReqR=NULL;
     int **reciveColumns=NULL; 
 
     allocateSingleSharedVector( (void **) recvCount, sizeof(int),nnodes,  smWin_recvCount, &sm_comm) ;
@@ -97,12 +101,12 @@ void createCommunicator(int *nColsOff,
         // establishing the send count arrays from the receive count arrays
         // node: is the node
         // sendCount[node]: how many to send to node node
-        requestS = (MPI_Request *) malloc(*nnodes*sizeof(MPI_Request));
-        requestR = (MPI_Request *) malloc(*nnodes*sizeof(MPI_Request));
+        myReqS = (MPI_Request *) malloc(*nnodes*sizeof(MPI_Request));
+        myReqR = (MPI_Request *) malloc(*nnodes*sizeof(MPI_Request));
             
         for (int node=0; node < *nnodes; ++node ) {
-            MPI_Isend((*recvCount+node),1,MPI_INT,node, 123,nodeComm,&requestS[node]);
-            MPI_Irecv((*sendCount+node),1,MPI_INT,node, 123,nodeComm,&requestR[node]);
+            MPI_Isend((*recvCount+node),1,MPI_INT,node, 123,nodeComm,&myReqS[node]);
+            MPI_Irecv((*sendCount+node),1,MPI_INT,node, 123,nodeComm,&myReqR[node]);
         } // end for //
 
         // Crerating a 2d-array capable to hold rows of
@@ -121,8 +125,8 @@ void createCommunicator(int *nColsOff,
             } // end for //
         } // end for //
         
-        MPI_Waitall(*nnodes,requestR,MPI_STATUS_IGNORE);
-        MPI_Waitall(*nnodes,requestS,MPI_STATUS_IGNORE);
+        MPI_Waitall(*nnodes,myReqR,MPI_STATUS_IGNORE);
+        MPI_Waitall(*nnodes,myReqS,MPI_STATUS_IGNORE);
     } // end if //
 
 
@@ -142,18 +146,18 @@ void createCommunicator(int *nColsOff,
         // Communicating the receive lists to sending processes to create the send lists
         for (int node=0; node <*nnodes; ++node) {
             if ((*recvCount)[node] > 0) {
-                MPI_Isend(reciveColumns[node],(*recvCount)[node],MPI_INT,node, 321,nodeComm,&requestS[node] );
+                MPI_Isend(reciveColumns[node],(*recvCount)[node],MPI_INT,node, 321,nodeComm,&myReqS[node] );
             } // end if //   
             
             if ((*sendCount)[node] > 0) {
-                MPI_Irecv(  (*sendColumns)[node],(*sendCount)[node],MPI_INT,node, 321,nodeComm,&requestR[node] );
+                MPI_Irecv(  (*sendColumns)[node],(*sendCount)[node],MPI_INT,node, 321,nodeComm,&myReqR[node] );
             } // end if //   
         } // end for //
-        MPI_Waitall(*nnodes,requestR,MPI_STATUS_IGNORE);
-        MPI_Waitall(*nnodes,requestS,MPI_STATUS_IGNORE);
+        MPI_Waitall(*nnodes,myReqR,MPI_STATUS_IGNORE);
+        MPI_Waitall(*nnodes,myReqS,MPI_STATUS_IGNORE);
         // end of Communicating the receive lists to sending processes to create the send lists
-        free(requestS);
-        free(requestR);
+        free(myReqS);
+        free(myReqR);
 
         for (int node=0; node<*nnodes; ++node){
             free(reciveColumns[node]);
@@ -192,6 +196,20 @@ void createCommunicator(int *nColsOff,
     if (off_node_nnz)  {
         MPI_Win_free(&smWin_off_node_column_map);
     } // end if //
+
+//////////////////
+
+    if (sharedRank==0 )   {
+        for (int node=0; node<*nnodes; ++node) {
+            if ((*recvCount)[node] > 0 ) ++*countR;
+            if ((*sendCount)[node] > 0 ) ++*countS;
+        } // end for //
+        *requestS = (MPI_Request *) malloc( *countS*sizeof(MPI_Request));
+        *requestR = (MPI_Request *) malloc( *countR*sizeof(MPI_Request));
+    } // end if //
+
+
+/////////////////////
 
 } // end of createCommunicator() //
 
