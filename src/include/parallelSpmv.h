@@ -28,8 +28,8 @@ void startComunication(real *v,
                        MPI_Request *requestS,
                        MPI_Request *requestR,
                        const int *nnodes,
-                       MPI_Comm *nodeComm,
-                       const int *sharedRank
+                       const int *sharedRank,
+                       const int *sharedSize
                         );
 
 void spmv(real *b, real *__restrict__ val, real *x, int *row_ptr, int *col_idx, int nRows);                         

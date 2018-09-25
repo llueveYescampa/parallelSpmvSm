@@ -11,16 +11,15 @@ void startComunication(real *x_ptr,
                        MPI_Request *requestS,
                        MPI_Request *requestR,
                        const int *nnodes,
-                       MPI_Comm *nodeComm,
-                       const int *sharedRank
+                       const int *sharedRank,
+                       const int *sharedSize
                         )
 {
-
     if (*sharedRank == 0) {
         for (int node=0,indx=0, s=0, r=0; node < *nnodes; indx += recvCount[node++] ) {
             // forming x_off_ptr array with contributions from each rank
             if (recvCount[node] > 0) {
-                MPI_Irecv(&x_off_ptr[indx],recvCount[node],MPI_MY_REAL,node, 231,*nodeComm,&requestR[r++] );
+                MPI_Irecv(&x_off_ptr[indx],recvCount[node],MPI_MY_REAL,(*sharedSize * node + *sharedRank), 231,MPI_COMM_WORLD,&requestR[r++] );
             } // end if //    
 
             // need to compress data to send inside compressedVec
@@ -28,7 +27,7 @@ void startComunication(real *x_ptr,
                 for (int i=0;  i<sendCount[node]; ++i) {
                         compressedVec[node][i] = x_ptr[sendColumns[node][i]];
                 } // end for //
-                MPI_Isend(compressedVec[node],sendCount[node],MPI_MY_REAL,node, 231,*nodeComm,&requestS[s++] );
+                MPI_Isend(compressedVec[node],sendCount[node],MPI_MY_REAL,(*sharedSize * node + *sharedRank), 231,MPI_COMM_WORLD,&requestS[s++] );
             } // end if //
         } // end for //
     } // end if //

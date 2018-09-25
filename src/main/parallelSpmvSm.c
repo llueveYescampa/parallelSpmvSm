@@ -158,9 +158,9 @@ int main(int argc, char *argv[])
         for(int i=0; i<rowsPerProc; ++i) w[i] = 0.0;
 
         
-            if (numberOfNodes>1) {
-                startComunication(v_nodal,v_off_nodal,compressedVec,recvCount, sendCount, sendColumns, requestS,requestR,&numberOfNodes, &nodeComm, &sharedRank);
-            }  // end if // 
+        if (numberOfNodes>1) {
+            startComunication(v_nodal,v_off_nodal,compressedVec,recvCount, sendCount, sendColumns, requestS,requestR,&numberOfNodes, &sharedRank,&sharedSize);
+        }  // end if // 
 
         // solving the on_proc part while comunication is taken place.
         spmv(w,val,v_nodal, row_ptr,col_idx,rowsPerProc);
