@@ -20,11 +20,14 @@ void createCommunicator(int *nColsOff,
                         int *countR,
                         int *countS ,
                         MPI_Request **requestR,
-                        MPI_Request **requestS
+                        MPI_Request **requestS,
+                        int **ranks2Send,
+                        int **ranks2Recv
                         )
 {
-    int  worldRank;
+    int  worldRank,worldSize;
     MPI_Comm_rank(MPI_COMM_WORLD,&worldRank);
+    MPI_Comm_size(MPI_COMM_WORLD,&worldSize);
 
     // creating an intranode communicator 
     MPI_Comm sm_comm;
@@ -198,16 +201,118 @@ void createCommunicator(int *nColsOff,
     } // end if //
 
 //////////////////
+    /*
+        The following  code is to determine the sequence of processes 
+        communication to allow the 'potentially' all process in a node 
+        to send/recive to processes in a different node.
+    */
 
-    if (sharedRank==0 )   {
-        for (int node=0; node<*nnodes; ++node) {
-            if ((*recvCount)[node] > 0 ) ++*countR;
-            if ((*sendCount)[node] > 0 ) ++*countS;
-        } // end for //
-        *requestS = (MPI_Request *) malloc( *countS*sizeof(MPI_Request));
-        *requestR = (MPI_Request *) malloc( *countR*sizeof(MPI_Request));
+
+    for (int node=0, tempR=0, tempS=0; node<*nnodes; ++node) {
+        if ((*recvCount)[node] > 0 ) {
+            if (sharedRank == (tempR % sharedSize) ) {
+                ++*countR;
+            } // end if //
+            ++tempR;
+        } // end if //
+        if ((*sendCount)[node] > 0   ) {
+            if ( sharedRank == (tempS % sharedSize) ) {
+                ++*countS;
+            } // end if //
+           ++tempS;
+        } // end if //
+    } // end for //
+
+    *requestS = (MPI_Request *) malloc( *countS*sizeof(MPI_Request));
+    *requestR = (MPI_Request *) malloc( *countR*sizeof(MPI_Request));
+
+    *ranks2Send = (int *) malloc( *countS*sizeof(int));
+    *ranks2Recv = (int *) malloc( *countR*sizeof(int));
+    
+    for (int node=0, tempR=0, tempS=0, i=0, j=0; node<*nnodes; ++node) {
+        if ((*recvCount)[node] > 0 ) {
+            if ( sharedRank == (tempR % sharedSize) ) {
+                (*ranks2Recv)[i++] = node*sharedSize;
+            } // end if //        
+            ++tempR;
+        } // end if // 
+        
+        if ((*sendCount)[node] > 0) {
+            if (sharedRank == (tempS % sharedSize)) {
+                (*ranks2Send)[j++] = node*sharedSize;
+            } // end if //
+            ++tempS;
+        } // end if //
     } // end if //
 
+    int sizeR, sizeS;
+    MPI_Reduce(countS, &sizeS,1,MPI_INT,MPI_SUM,0, MPI_COMM_WORLD);
+    MPI_Reduce(countR, &sizeR,1,MPI_INT,MPI_SUM,0, MPI_COMM_WORLD);
+    int *ranksS=NULL, *ranksR=NULL;
+    int *dispS=NULL, *dispR=NULL;
+    int *receive_countsS=NULL, *receive_countsR=NULL;
+    
+    if (worldRank==0) {
+        ranksS = (int *) malloc( sizeS*sizeof(int));
+        ranksR = (int *) malloc( sizeR*sizeof(int));
+        receive_countsS = (int *) malloc( worldSize*sizeof(int));
+        receive_countsR = (int *) malloc( worldSize*sizeof(int));
+        dispS = (int *) malloc( worldSize*sizeof(int));
+        dispR = (int *) malloc( worldSize*sizeof(int));
+    } // end if //
+    
+    MPI_Gather( countS, 1, MPI_INT,receive_countsS,1,MPI_INT,0, MPI_COMM_WORLD);
+    MPI_Gather( countR, 1, MPI_INT,receive_countsR,1,MPI_INT,0, MPI_COMM_WORLD);
+    if (worldRank==0) {
+        dispS[0] = dispR[0] = 0;
+        for (int i=1; i<worldSize; ++i) {
+            dispS[i] = dispS[i-1]+receive_countsS[i-1];
+            dispR[i] = dispR[i-1]+receive_countsR[i-1];
+        } // end for //
+    } // end if //
+        
+    MPI_Gatherv(*ranks2Send,*countS,MPI_INT,ranksS,receive_countsS,dispS,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Gatherv(*ranks2Recv,*countR,MPI_INT,ranksR,receive_countsR,dispR,MPI_INT,0,MPI_COMM_WORLD);
+
+    int *workingArrayS=NULL,*workingArrayR=NULL;
+    
+    if (worldRank==0) {
+        workingArrayS= (int *) calloc( worldSize,sizeof(int));
+        workingArrayR= (int *) calloc( worldSize,sizeof(int));
+        int index;
+
+        for (int i=0; i<sizeS; ++i) {
+            index=ranksS[i];
+            ranksS[i]+=workingArrayS[ranksS[i]];
+            ++workingArrayS[index];
+            if ( workingArrayS[index] == sharedSize ) {
+                workingArrayS[index] = 0;
+            } // end if 
+        } // end for
+        
+        for (int i=0; i<sizeR; ++i) {
+            index=ranksR[i];
+            ranksR[i]+=workingArrayR[ranksR[i]];
+            ++workingArrayR[index];
+            if ( workingArrayR[index] == sharedSize ) {
+                workingArrayR[index] = 0;
+            } // end if 
+        } // end for
+        
+    } // end if //
+
+    free(workingArrayS);
+    free(workingArrayR);
+    
+    MPI_Scatterv(ranksS,receive_countsS,dispS,MPI_INT,*ranks2Send,*countS,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Scatterv(ranksR,receive_countsR,dispR,MPI_INT,*ranks2Recv,*countR,MPI_INT,0,MPI_COMM_WORLD);
+
+    free(dispS);
+    free(dispR);
+    free(receive_countsS);
+    free(receive_countsR);
+    free(ranksS);
+    free(ranksR);
 
 /////////////////////
 

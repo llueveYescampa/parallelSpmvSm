@@ -7,7 +7,7 @@
 
 #include "parallelSpmv.h"
 
-#define REP 10
+#define REP 1000
 
 
 int main(int argc, char *argv[]) 
@@ -105,25 +105,9 @@ int main(int argc, char *argv[])
 
     int countR=0, countS=0;
     if (numberOfNodes>1) {
-        createCommunicator(&nColsOff, &recvCount,&smWin_recvCount, &sendCount,&smWin_sendCount, &sendColumns,&smWin_sendColumns, col_idx_off, &off_proc_nnz, &rowsPerNode,&compressedVec, &smWin_compressedVec, &numberOfNodes, &countR, &countS, &requestR, &requestS) ;
+        createCommunicator(&nColsOff, &recvCount,&smWin_recvCount, &sendCount,&smWin_sendCount, &sendColumns,&smWin_sendColumns, col_idx_off, &off_proc_nnz, &rowsPerNode,&compressedVec, &smWin_compressedVec, &numberOfNodes, &countR, &countS, &requestR, &requestS, &ranks2Send,&ranks2Recv);
     } // end if //
 
-/*
-    /// I beleive all this belongs to the  "createCommunicator()" function.... Move it in when it works
-    int countR=0, countS=0;
-    if (sharedRank==0 && numberOfNodes>1)   {
-        for (int node=0; node<numberOfNodes; ++node) {
-            if (recvCount[node] > 0 ) ++countR;
-            if (sendCount[node] > 0 ) ++countS;
-        } // end for //
-        requestS = (MPI_Request *) malloc( countS*sizeof(MPI_Request));
-        requestR = (MPI_Request *) malloc( countR*sizeof(MPI_Request));
-    } // end if //
-    
-    /// I beleive all this belongs to the  "createCommunicator()" function.... Move it in when it works
-*/
-        
-    // ready to start //    
 
 ///////////////////////////////////////////////////
 ////  shared memory
@@ -135,12 +119,10 @@ int main(int argc, char *argv[])
     MPI_Win smWin_v_off_nodal;
     real *v_off_nodal=NULL; 
     
-    
     allocateSharedVector(&v,  &v_nodal,     &rowsPerProc, &sm_win,     &sm_comm );
     allocateSingleSharedVector((void **) &v_off_nodal,sizeof(real), &nColsOff,    &smWin_v_off_nodal, &sm_comm );
     
     //printf("worldRank: %d, nColsOff: %d\n", worldRank,nColsOff);
-    
     
     //v_off_nodal = (real *) malloc((nColsOff)*sizeof(real));
 
@@ -150,12 +132,8 @@ int main(int argc, char *argv[])
     MPI_Barrier(sm_comm);  
     
 ///////////////////////////////////////////////////
-
-    
     real *w=NULL;
     w     = (real *) malloc(rowsPerProc*sizeof(real)); 
-
-
     
 
     // Timing should begin here//
@@ -170,7 +148,7 @@ int main(int argc, char *argv[])
 
         
         if (numberOfNodes>1) {
-            startComunication(v_nodal,v_off_nodal,compressedVec,recvCount, sendCount, sendColumns, requestS,requestR,&numberOfNodes, &sharedRank,&sharedSize);
+            startComunication(v_nodal,v_off_nodal,compressedVec,recvCount, sendCount, sendColumns, requestS,requestR,&numberOfNodes, &sharedRank,&sharedSize, ranks2Send,ranks2Recv);
         }  // end if // 
 
         // solving the on_proc part while comunication is taken place.
@@ -178,7 +156,7 @@ int main(int argc, char *argv[])
 
         
         // waitting for the comunication to finish
-        if (sharedRank == 0 && numberOfNodes>1 ) {
+        if (numberOfNodes>1 ) {
             MPI_Waitall(countR, requestR,MPI_STATUS_IGNORE);
             MPI_Waitall(countS, requestS,MPI_STATUS_IGNORE);
         } // end if //

@@ -11,3 +11,6 @@ Version 3
     The spmv version was modified to allow vectorization in inner loop. For the pgi compiler a new parameter was used to stop the check for dependency in the loop.
     The results for this version are good for Intel, mixed for pgi and no-good for gcc 7.3
 
+Version 4
+    All processes are used for communicating to processes in diferent nodes.
+    

@@ -22,6 +22,8 @@
         free(compressedVec);
     } // end if //
     
+    free(ranks2Send);
+    free(ranks2Recv);
 
     free(requestS);
     free(requestR);
