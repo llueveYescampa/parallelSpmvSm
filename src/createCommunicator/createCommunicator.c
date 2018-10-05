@@ -210,7 +210,7 @@ void createCommunicator(int *nColsOff,
 
     for (int node=0, tempR=0, tempS=0; node<*nnodes; ++node) {
         if ((*recvCount)[node] > 0 ) {
-            if (sharedRank == (tempR % sharedSize) ) {
+            if (sharedRank == (sharedSize - 1 - (tempR % sharedSize))  ) {
                 ++*countR;
             } // end if //
             ++tempR;
@@ -222,6 +222,9 @@ void createCommunicator(int *nColsOff,
            ++tempS;
         } // end if //
     } // end for //
+    
+    //printf("worldRank: ---> %d, send: %d, recv: %d\n", worldRank, *countS, *countR);
+    //MPI_Finalize(); exit(0);
 
     *requestS = (MPI_Request *) malloc( *countS*sizeof(MPI_Request));
     *requestR = (MPI_Request *) malloc( *countR*sizeof(MPI_Request));
@@ -231,7 +234,7 @@ void createCommunicator(int *nColsOff,
     
     for (int node=0, tempR=0, tempS=0, i=0, j=0; node<*nnodes; ++node) {
         if ((*recvCount)[node] > 0 ) {
-            if ( sharedRank == (tempR % sharedSize) ) {
+            if ( sharedRank == (sharedSize - 1 - (tempR % sharedSize)) ) {
                 (*ranks2Recv)[i++] = node*sharedSize;
             } // end if //        
             ++tempR;
@@ -239,11 +242,12 @@ void createCommunicator(int *nColsOff,
         
         if ((*sendCount)[node] > 0) {
             if (sharedRank == (tempS % sharedSize)) {
-                (*ranks2Send)[j++] = node*sharedSize;
+                (*ranks2Send)[j++] = (node+1)*sharedSize -1;
             } // end if //
             ++tempS;
         } // end if //
-    } // end if //
+    } // end for //
+
 
     int sizeR, sizeS;
     MPI_Reduce(countS, &sizeS,1,MPI_INT,MPI_SUM,0, MPI_COMM_WORLD);
@@ -283,7 +287,7 @@ void createCommunicator(int *nColsOff,
 
         for (int i=0; i<sizeS; ++i) {
             index=ranksS[i];
-            ranksS[i]+=workingArrayS[ranksS[i]];
+            ranksS[i]-=workingArrayS[ranksS[i]];
             ++workingArrayS[index];
             if ( workingArrayS[index] == sharedSize ) {
                 workingArrayS[index] = 0;

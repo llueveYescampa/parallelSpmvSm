@@ -21,7 +21,8 @@ void startComunication(real *x_ptr,
     
         // forming x_off_ptr array with contributions from each rank
         if (recvCount[node] > 0) {
-            if (*sharedRank == (tempR % *sharedSize) ) {
+            if ( *sharedRank == (*sharedSize - 1 - (tempR % *sharedSize)) ) {
+                //printf("Node: %d, worldRank: %d, rank receiving: %d\n", node, worldRank, ranks2Recv[r]);
                 MPI_Irecv(&x_off_ptr[indx],recvCount[node],MPI_MY_REAL,ranks2Recv[r], 231,MPI_COMM_WORLD,&requestR[r] );
                 ++r;
             } // end if //
@@ -34,6 +35,7 @@ void startComunication(real *x_ptr,
                     compressedVec[node][i] = x_ptr[sendColumns[node][i]];
             } // end for //
             if ( *sharedRank == (tempS % *sharedSize) ) {
+                //printf("Node: %d, worldRank: %d, rank sending: %d\n", node, worldRank,ranks2Send[s]);
                 MPI_Isend(compressedVec[node],sendCount[node],MPI_MY_REAL, ranks2Send[s] , 231,MPI_COMM_WORLD,&requestS[s] );
                 ++s;
             } // end if //
