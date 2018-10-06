@@ -160,20 +160,17 @@ int main(int argc, char *argv[])
             MPI_Waitall(countR, requestR,MPI_STATUS_IGNORE);
             MPI_Waitall(countS, requestS,MPI_STATUS_IGNORE);
         } // end if //
-        
-
         MPI_Win_sync(smWin_v_off_nodal);
         MPI_Barrier(sm_comm);
+        
         // now is time to solve the off_proc part
         if (off_proc_nnz > 0) {
             spmv(w,val_off,v_off_nodal, row_ptr_off,col_idx_off,rowsPerProc);
         } // end if//
-
         MPI_Barrier(MPI_COMM_WORLD);
     } // end for //
     // Timing should end here//
     elapsed_time += MPI_Wtime();
-
 
 
     if (worldRank == root) {
