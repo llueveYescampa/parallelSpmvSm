@@ -2,20 +2,17 @@
 #   Crearte soft links with the programs into the same directory 
 #   Do this for each compiler
 #
-
-
-
 if [ "$#" -ne 1 ]
 then
   echo "Usage: $0 matrixName"
   exit 1
 fi
+matrix=$1
 
 cd buildGnu
 
-../runClusterTest.sh parallelSpmv     $1 gnu
-../runClusterTest.sh parallelSpmvSmV1 $1 gnu
-../runClusterTest.sh parallelSpmvSmV2 $1 gnu
+../runClusterTest.sh parallelSpmv   $matrix gnu
+../runClusterTest.sh parallelSpmvSm $matrix gnu
 
 cd ../
 
@@ -24,9 +21,8 @@ source setImpi
 
 cd buildIntel
 
-../runClusterTest.sh parallelSpmv     $1 intel
-../runClusterTest.sh parallelSpmvSmV1 $1 intel
-../runClusterTest.sh parallelSpmvSmV2 $1 intel
+../runClusterTest.sh parallelSpmv   $matrix intel
+../runClusterTest.sh parallelSpmvSm $matrix intel
 
 
 cd ../
@@ -36,9 +32,8 @@ source setPgiMpi 18.x
 
 cd buildPgi
 
-../runClusterTest.sh parallelSpmv     $1 pgi
-../runClusterTest.sh parallelSpmvSmV1 $1 pgi
-../runClusterTest.sh parallelSpmvSmV2 $1 pgi
+../runClusterTest.sh parallelSpmv   $matrix pgi
+../runClusterTest.sh parallelSpmvSm $matrix pgi
 
 cd ../
 
