@@ -9,14 +9,14 @@ numberOfProcesses=ARG3+1
 set terminal pdf noenhanced
 set output computer."_".matrixName.".pdf"
 
-files = "parallelSpmv parallelSpmvSmV1 parallelSpmvSmV2"
+files = "parallelSpmv parallelSpmvSm "
 
 load 'style.gnp'
 #set style line 1 dt 1 ps 0.6 lc rgb "#F0F0F0";
 #set style line 2 dt 4 ps 0.5 lc rgb "#ff4500";
 #set style line 3 dt 5 ps 0.5 lc rgb "#ffd700";
 
-set key top left nobox
+set key top right nobox
 set grid
 
 set title "Comparison of parallelSpmv versions for ".matrixName." in ".computer
