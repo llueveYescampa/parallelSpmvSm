@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 
         
         // waitting for the comunication to finish
-        if (numberOfNodes > 1 ) {
+        if (numberOfNodes > 1) {
             MPI_Waitall(countS, requestS,MPI_STATUS_IGNORE);
             MPI_Waitall(countR, requestR,MPI_STATUS_IGNORE);
         } // end if //
