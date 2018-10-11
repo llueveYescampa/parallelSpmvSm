@@ -156,10 +156,9 @@ int main(int argc, char *argv[])
 
         
         // waitting for the comunication to finish
-        if (numberOfNodes > 1) {
-            MPI_Waitall(countS, requestS,MPI_STATUS_IGNORE);
-            MPI_Waitall(countR, requestR,MPI_STATUS_IGNORE);
-        } // end if //
+        MPI_Waitall(countS, requestS,MPI_STATUS_IGNORE);
+        MPI_Waitall(countR, requestR,MPI_STATUS_IGNORE);
+        
         MPI_Win_sync(smWin_v_off_nodal);
         MPI_Barrier(sm_comm);
         
