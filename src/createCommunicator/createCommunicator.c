@@ -20,7 +20,6 @@ void createCommunicator(int *nColsOff,
                         int *countR,
                         int *countS ,
                         MPI_Request **requestR,
-                        MPI_Request **requestS,
                         int **ranks2Send,
                         int **ranks2Recv
                         )
@@ -226,7 +225,6 @@ void createCommunicator(int *nColsOff,
     //printf("worldRank: ---> %d, send: %d, recv: %d\n", worldRank, *countS, *countR);
     //MPI_Finalize(); exit(0);
 
-    *requestS = (MPI_Request *) malloc( *countS*sizeof(MPI_Request));
     *requestR = (MPI_Request *) malloc( *countR*sizeof(MPI_Request));
 
     *ranks2Send = (int *) malloc( *countS*sizeof(int));

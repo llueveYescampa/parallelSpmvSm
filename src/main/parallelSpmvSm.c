@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 
     int countR=0, countS=0;
     if (numberOfNodes>1) {
-        createCommunicator(&nColsOff, &recvCount,&smWin_recvCount, &sendCount,&smWin_sendCount, &sendColumns,&smWin_sendColumns, col_idx_off, &off_proc_nnz, &rowsPerNode,&compressedVec, &smWin_compressedVec, &numberOfNodes, &countR, &countS, &requestR, &requestS, &ranks2Send,&ranks2Recv);
+        createCommunicator(&nColsOff, &recvCount,&smWin_recvCount, &sendCount,&smWin_sendCount, &sendColumns,&smWin_sendColumns, col_idx_off, &off_proc_nnz, &rowsPerNode,&compressedVec, &smWin_compressedVec, &numberOfNodes, &countR, &countS, &requestR,  &ranks2Send,&ranks2Recv);
     } // end if //
 
 
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 
         
         if (numberOfNodes>1) {
-            startComunication(v_nodal,v_off_nodal,compressedVec,recvCount, sendCount, sendColumns, requestS,requestR,&numberOfNodes, &sharedRank,&sharedSize, ranks2Send,ranks2Recv);
+            startComunication(v_nodal,v_off_nodal,compressedVec,recvCount, sendCount, sendColumns, requestR,&numberOfNodes, &sharedRank,&sharedSize, ranks2Send,ranks2Recv);
         }  // end if // 
 
         // solving the on_proc part while comunication is taken place.
@@ -156,7 +156,6 @@ int main(int argc, char *argv[])
 
         
         // waitting for the comunication to finish
-        MPI_Waitall(countS, requestS,MPI_STATUS_IGNORE);
         MPI_Waitall(countR, requestR,MPI_STATUS_IGNORE);
         
         MPI_Win_sync(smWin_v_off_nodal);
