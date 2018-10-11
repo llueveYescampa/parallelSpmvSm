@@ -18,7 +18,7 @@ load 'style.gnp'
 set key top right nobox
 set grid
 
-set title "Scalability of parallelSpmv for ".matrixName." in ".computer
+set title "Scalability of parallelSpmvSm for ".matrixName." in ".computer
 #set title "Spmv comparison in Blue Waters"
 #set label "" at screen 0.5, 0.9 center font "Arial,11"
 #set label  computer at graph 0.5, 1.035 center font "Arial,12"
