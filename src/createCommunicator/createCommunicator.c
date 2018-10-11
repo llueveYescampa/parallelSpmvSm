@@ -205,7 +205,7 @@ void createCommunicator(int *nColsOff,
         to send/recive to processes in a different node.
     */
 
-    int countS;
+    int countS=0;
     for (int node=0, tempR=0, tempS=0; node<*nnodes; ++node) {
         if ((*recvCount)[node] > 0 ) {
             if (sharedRank == (sharedSize - 1 - (tempR % sharedSize))  ) {
