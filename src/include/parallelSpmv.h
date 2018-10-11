@@ -18,7 +18,6 @@ void createCommunicator( int *nColsOff,
                         real ***compressedVec, MPI_Win **smWin_compressedVec,
                         const int *nnodes,
                         int *countR,
-                        int *countS,
                         MPI_Request **reqR,
                         int **ranks2Send,
                         int **ranks2Recv                         

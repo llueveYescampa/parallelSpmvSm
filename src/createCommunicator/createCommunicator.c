@@ -18,7 +18,6 @@ void createCommunicator(int *nColsOff,
                         real ***compressedVec, MPI_Win **smWin_compressedVec,
                         const int *nnodes,
                         int *countR,
-                        int *countS ,
                         MPI_Request **requestR,
                         int **ranks2Send,
                         int **ranks2Recv
@@ -206,7 +205,7 @@ void createCommunicator(int *nColsOff,
         to send/recive to processes in a different node.
     */
 
-
+    int countS;
     for (int node=0, tempR=0, tempS=0; node<*nnodes; ++node) {
         if ((*recvCount)[node] > 0 ) {
             if (sharedRank == (sharedSize - 1 - (tempR % sharedSize))  ) {
@@ -216,18 +215,18 @@ void createCommunicator(int *nColsOff,
         } // end if //
         if ((*sendCount)[node] > 0   ) {
             if ( sharedRank == (tempS % sharedSize) ) {
-                ++*countS;
+                ++countS;
             } // end if //
            ++tempS;
         } // end if //
     } // end for //
     
-    //printf("worldRank: ---> %d, send: %d, recv: %d\n", worldRank, *countS, *countR);
+    //printf("worldRank: ---> %d, send: %d, recv: %d\n", worldRank, countS, *countR);
     //MPI_Finalize(); exit(0);
 
     *requestR = (MPI_Request *) malloc( *countR*sizeof(MPI_Request));
 
-    *ranks2Send = (int *) malloc( *countS*sizeof(int));
+    *ranks2Send = (int *) malloc( countS*sizeof(int));
     *ranks2Recv = (int *) malloc( *countR*sizeof(int));
     
     for (int node=0, tempR=0, tempS=0, i=0, j=0; node<*nnodes; ++node) {
@@ -248,7 +247,7 @@ void createCommunicator(int *nColsOff,
 
 
     int sizeR, sizeS;
-    MPI_Reduce(countS, &sizeS,1,MPI_INT,MPI_SUM,0, MPI_COMM_WORLD);
+    MPI_Reduce(&countS, &sizeS,1,MPI_INT,MPI_SUM,0, MPI_COMM_WORLD);
     MPI_Reduce(countR, &sizeR,1,MPI_INT,MPI_SUM,0, MPI_COMM_WORLD);
     int *ranksS=NULL, *ranksR=NULL;
     int *dispS=NULL, *dispR=NULL;
@@ -263,7 +262,7 @@ void createCommunicator(int *nColsOff,
         dispR = (int *) malloc( worldSize*sizeof(int));
     } // end if //
     
-    MPI_Gather( countS, 1, MPI_INT,receive_countsS,1,MPI_INT,0, MPI_COMM_WORLD);
+    MPI_Gather( &countS, 1, MPI_INT,receive_countsS,1,MPI_INT,0, MPI_COMM_WORLD);
     MPI_Gather( countR, 1, MPI_INT,receive_countsR,1,MPI_INT,0, MPI_COMM_WORLD);
     if (worldRank==0) {
         dispS[0] = dispR[0] = 0;
@@ -273,7 +272,7 @@ void createCommunicator(int *nColsOff,
         } // end for //
     } // end if //
         
-    MPI_Gatherv(*ranks2Send,*countS,MPI_INT,ranksS,receive_countsS,dispS,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Gatherv(*ranks2Send, countS,MPI_INT,ranksS,receive_countsS,dispS,MPI_INT,0,MPI_COMM_WORLD);
     MPI_Gatherv(*ranks2Recv,*countR,MPI_INT,ranksR,receive_countsR,dispR,MPI_INT,0,MPI_COMM_WORLD);
 
     int *workingArrayS=NULL,*workingArrayR=NULL;
@@ -306,7 +305,7 @@ void createCommunicator(int *nColsOff,
     free(workingArrayS);
     free(workingArrayR);
     
-    MPI_Scatterv(ranksS,receive_countsS,dispS,MPI_INT,*ranks2Send,*countS,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Scatterv(ranksS,receive_countsS,dispS,MPI_INT,*ranks2Send, countS,MPI_INT,0,MPI_COMM_WORLD);
     MPI_Scatterv(ranksR,receive_countsR,dispR,MPI_INT,*ranks2Recv,*countR,MPI_INT,0,MPI_COMM_WORLD);
 
     free(dispS);

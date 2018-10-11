@@ -103,9 +103,9 @@ int main(int argc, char *argv[])
     // nColsOff is the number of off-node columns per node
     int nColsOff=0;
 
-    int countR=0, countS=0;
+    int countR=0;
     if (numberOfNodes>1) {
-        createCommunicator(&nColsOff, &recvCount,&smWin_recvCount, &sendCount,&smWin_sendCount, &sendColumns,&smWin_sendColumns, col_idx_off, &off_proc_nnz, &rowsPerNode,&compressedVec, &smWin_compressedVec, &numberOfNodes, &countR, &countS, &requestR,  &ranks2Send,&ranks2Recv);
+        createCommunicator(&nColsOff, &recvCount,&smWin_recvCount, &sendCount,&smWin_sendCount, &sendColumns,&smWin_sendColumns, col_idx_off, &off_proc_nnz, &rowsPerNode,&compressedVec, &smWin_compressedVec, &numberOfNodes, &countR, &requestR,  &ranks2Send,&ranks2Recv);
     } // end if //
 
 
