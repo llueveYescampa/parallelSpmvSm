@@ -22,7 +22,7 @@
     // end of creatinng communicator data//
 
     // request arrays for communication  - two per process (send/recv)
-    MPI_Request *requestR=NULL;
+    MPI_Request *requestS=NULL, *requestR=NULL;
 
     // toSent and toRecv ranks
     int *ranks2Send=NULL, *ranks2Recv=NULL;

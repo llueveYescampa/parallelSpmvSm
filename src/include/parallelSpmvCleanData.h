@@ -25,6 +25,7 @@
     free(ranks2Send);
     free(ranks2Recv);
 
+    free(requestS);
     free(requestR);
 
     free(row_ptr);
