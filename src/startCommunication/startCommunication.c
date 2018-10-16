@@ -17,7 +17,7 @@ void startComunication(real *x_ptr,
                        const int *ranks2Recv
                         )
 {
-    for (int node=0,indx=0, s=0, tempS=0; node < *nnodes; indx += recvCount[node++] ) {
+    for (int node=0, s=0, tempS=0; node < *nnodes; ++node ) {
         // need to compress data to send inside compressedVec
         if (sendCount[node] > 0) {                   // need to send to process j
             for (int i=0;  i<sendCount[node]; ++i) {
@@ -33,7 +33,6 @@ void startComunication(real *x_ptr,
     } // end for //
 
     for (int node=0,indx=0, r=0,tempR=0; node < *nnodes; indx += recvCount[node++] ) {
-    
         // forming x_off_ptr array with contributions from each rank
         if (recvCount[node] > 0) {
             if ( *sharedRank == (*sharedSize - 1 - (tempR % *sharedSize)) ) {
