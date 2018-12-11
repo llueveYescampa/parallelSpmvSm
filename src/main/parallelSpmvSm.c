@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
         const real tolerance=1.0e-08;
         real error;
         do {
-            error =  fabs(sol[row] - w[row]); //  /fabs(sol[row]);
+            error =  fabs(sol[row] - w[row]) /fabs(sol[row]);
             if ( error > tolerance ) break;
             ++row;
         } while (row < rowsPerProc); // end do-while //
