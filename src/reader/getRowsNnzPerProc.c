@@ -14,7 +14,7 @@ void getRowsNnzPerProc(int *rowsPP, int *nnzPP, const int *global_n, const int *
     for (int row=0; row<*global_n; ++row) {    
         if ( (double) row_Ptr[row+1] >=  lookingFor ) { 
             // search for smallest difference
-            if (fabs ( lookingFor - row_Ptr[row+1])  <= fabs ( lookingFor - row_Ptr[row])   ) {
+            if (row_Ptr[row+1] - lookingFor   <=  lookingFor - row_Ptr[row]   ) {
                 endRow = row;
             } else {
                 endRow = row-1;
