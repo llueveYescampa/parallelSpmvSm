@@ -41,6 +41,6 @@ void startComunication(real *v,
                        const int *ranks2Recv
                         );
 
-void spmv(real *b, real *__restrict__ val, real *x, int *row_ptr, int *col_idx, int nRows);                         
+void spmv(real *b, real *__restrict__ val, real *x, int *row_ptr, int *col_idx, int nRows, const real alpha, const real beta);                         
 void allocateSharedVector(real **v, real **v_nodal,const int *n, MPI_Win *sm_win, MPI_Comm *sm_comm );
 void allocateSingleSharedVector(void **v, size_t size, const int *n, MPI_Win *sm_win, MPI_Comm *sm_comm);

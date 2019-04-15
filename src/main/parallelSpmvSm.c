@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
         }  // end if // 
 
         // solving the on_proc part while comunication is taken place.
-        spmv(w,val,v_nodal, row_ptr,col_idx,rowsPerProc);
+        spmv(w,val,v_nodal, row_ptr,col_idx,rowsPerProc, 1.0,1.0);
 
         
         // waitting for the comunication to finish
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
         
         // now is time to solve the off_proc part
         if (off_proc_nnz > 0) {
-            spmv(w,val_off,v_off_nodal, row_ptr_off,col_idx_off,rowsPerProc);
+            spmv(w,val_off,v_off_nodal, row_ptr_off,col_idx_off,rowsPerProc, 1.0, 1.0);
         } // end if//
         MPI_Barrier(MPI_COMM_WORLD);
     } // end for //
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 
 
     if (worldRank == root) {
-        printf("---> Time taken by %d processes: %g seconds, GFLOPS: %f\n",worldSize, elapsed_time, 2.0*nnz_global*REP*1.0e-9/elapsed_time);
+        printf("---> Time taken by %d processes: %g seconds, GFLOPS: %f\n",worldSize, elapsed_time, (2.0*nnz_global+3.0*n_global)*REP*1.0e-9/elapsed_time);
     } // end if //
 
     
