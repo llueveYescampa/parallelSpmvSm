@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     } // end if //
 
     #include "parallelSpmvData.h"
-
+    real alpha = 1.0, beta = 0.0;
     // verifing number of input parameters //
     char exists='t';
     char checkSol='f';
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
     
     for (int t=0; t<REP; ++t) {
         // cleaning solution vector //
-        for(int i=0; i<rowsPerProc; ++i) w[i] = 0.0;
+        //for(int i=0; i<rowsPerProc; ++i) w[i] = 0.0;
         //memset(w, 0, rowsPerProc*sizeof(real));
 
         
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
         }  // end if // 
 
         // solving the on_proc part while comunication is taken place.
-        spmv(w,val,v_nodal, row_ptr,col_idx,rowsPerProc, 1.0,1.0);
+        spmv(w,val,v_nodal, row_ptr,col_idx,rowsPerProc, alpha,beta);
 
         
         // waitting for the comunication to finish
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
         
         // now is time to solve the off_proc part
         if (off_proc_nnz > 0) {
-            spmv(w,val_off,v_off_nodal, row_ptr_off,col_idx_off,rowsPerProc, 1.0, 1.0);
+            spmv(w,val_off,v_off_nodal, row_ptr_off,col_idx_off,rowsPerProc, alpha, 1.0);
         } // end if//
         MPI_Barrier(MPI_COMM_WORLD);
     } // end for //
