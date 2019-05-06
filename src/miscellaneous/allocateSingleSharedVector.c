@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <mpi.h>
 #include <string.h>
 
@@ -29,4 +28,5 @@ void allocateSingleSharedVector(void **v, size_t size, const int *n, MPI_Win *sm
     } // end if //
     MPI_Win_sync(*sm_win);
     MPI_Barrier(*sm_comm);
+    
 } // end of allocateSingleSharedVector() //
