@@ -130,7 +130,8 @@ int main(int argc, char *argv[])
     // reading input vector
     vectorReader(v, &rowsPerProc, argv[2]);
     MPI_Win_sync(sm_win);
-    MPI_Barrier(sm_comm);  
+    MPI_Barrier(sm_comm);
+    MPI_Win_unlock_all(sm_win);  
     
 ///////////////////////////////////////////////////
     real *w=NULL;
