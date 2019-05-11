@@ -35,7 +35,7 @@
     free(col_idx_off);
     free(val_off);
     
-    MPI_Win_unlock_all(sm_win);
+    // MPI_Win_unlock_all(sm_win);
     MPI_Win_free(&sm_win);
 
     MPI_Win_unlock_all(smWin_v_off_nodal);
