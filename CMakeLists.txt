@@ -34,8 +34,8 @@ include_directories(${MPI_INCLUDE_PATH})
 include_directories("src/include")
 add_subdirectory(src)
 
-add_executable(parallelSpmvSm ${parallelSpmvSm_Src})
-target_link_libraries(parallelSpmvSm ${MPI_LIBRARIES} ${CMAKE_EXE_LINKER_FLAGS})
+add_executable(parallelSpmvSmAlphaBeta ${parallelSpmvSm_Src})
+target_link_libraries(parallelSpmvSmAlphaBeta ${MPI_LIBRARIES} ${CMAKE_EXE_LINKER_FLAGS})
 
 
 ############### Debug messages ####################
