@@ -30,6 +30,7 @@ npt=`grep -c ^processor /proc/cpuinfo`
 numaNodes=`lscpu | grep "NUMA node(s):" | awk '{}{print $3}{}'`
 tpc=`lscpu | grep "Thread(s) per core:" | awk '{}{print $4}{}'`
 np="$(($npt / $tpc))"
+#np=1
 npps="$(($np / $numaNodes))"
 npm1="$(($np - 1))"
 
@@ -45,9 +46,11 @@ fi
 rm -f $tempFilename
 for i in  `seq 1 $np`; do
     for j in  `seq 1 $nloops`; do
+        #echo run number: $j, using 4 processes 
         echo run number: $j, using $i processes 
         echo  $1  ../matrices/$2".mm_bin" ../matrices/$2".in_bin" 
-        mpiexec $bindings  -n $i  $1  ../matrices/$2".mm_bin" ../matrices/$2".in_bin"   ../matrices/$2".out_bin"  | grep taken >>  $tempFilename
+        mpiexec $bindings  -n $i  $1  ../matrices/$2".mm_bin" ../matrices/$2".in_bin"   ../matrices/$2".out_bin"  | grep by >>  $tempFilename
+        #mpiexec $bindings  -n 4  $1  ../matrices/$2".mm_bin" ../matrices/$2".in_bin"   ../matrices/$2".out_bin"  | grep by >>  $tempFilename
     done
 done
 
