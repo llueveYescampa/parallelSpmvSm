@@ -26,8 +26,8 @@ make -j
 
 cd ../
 
-source setPgi 18.x
-source setPgiMpi 18.x
+source setPgi 19.x
+source setPgiMpi 19.x
 
 cd buildPgi
 make clean
