@@ -78,6 +78,21 @@ for j in  `seq 1 $nloops`; do
 done
 cat $tempFilename  | grep process | awk 'BEGIN{}   { printf("%f  %f\n", $7,$10)}  END{}' |  sort  -k1,1n -k2,2n |   head -1  > ../../plots/$(hostname)'_'$n/Intel/$matrix/parallelSpmvSm.txt
 
+
+rm -f $tempFilename
+for j in  `seq 1 $nloops`; do
+    run mklSpmv $matrix $n | grep by >>  $tempFilename
+done
+cat $tempFilename  | grep threads | awk 'BEGIN{}   { printf("%f  %f\n", $7,$10)}  END{}' |  sort  -k1,1n -k2,2n |   head -1  > ../../plots/$(hostname)'_'$n/Intel/$matrix/mklSpmv.txt
+
+rm -f $tempFilename
+for j in  `seq 1 $nloops`; do
+    run parallelSpmvSmAlphaBeta $matrix $n | grep by >>  $tempFilename
+done
+cat $tempFilename  | grep process | awk 'BEGIN{}   { printf("%f  %f\n", $7,$10)}  END{}' |  sort  -k1,1n -k2,2n |   head -1  > ../../plots/$(hostname)'_'$n/Intel/$matrix/parallelSpmvSmAlphaBeta.txt
+
+
+
 rm $tempFilename
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
